@@ -1,7 +1,7 @@
 
 const {UserRepository} = require('../repositories');
 const StatusCode = require('../utils/constants/statuscodes');
-const { ApiError } = require('../utils/error');
+const { ApiError, ValidationError } = require('../utils/error');
 
 const userRepository = new UserRepository();
 
@@ -10,15 +10,15 @@ const createUser = async (data) => {
          const user = await userRepository.create(data);
          return user;
     } catch (error) {
-        //console.log(JSON.stringify(error,null,2));
+        // console.log("In Services :",JSON.stringify(error,null,2));
          if(error.name === "ValidationError" )
          {  
-            const messages = Object.keys(error.errors).map((err)=>{
+            const explanation = Object.keys(error.errors).map((err)=>{
                 const error_name = error.errors[err].name;
-                const message = error.errors[err].message;
-               return {"error_type":error_name,"message":message}
+                const message= error.errors[err].message;
+               return {"error_type":error_name,message}
             })
-            throw new ApiError(messages,StatusCode.BAD_REQUEST)
+            throw new ValidationError(explanation)
         }
 
         else if( error.name === "TypeError")
