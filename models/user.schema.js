@@ -2,29 +2,39 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
     name: {
-        type:"String",
+        type:String,
         required:true,
-        trim:true
+        trim:true,
+        validate: {
+            validator:function (value){
+                return isNaN(value);
+            },
+            messgae:"Name should be String"
+        }
     },
-    age:{
-        type:"Number",
-        required:true,
-        defulat:18
-    },
+    
+   age: {
+        type: Number,
+        required: true,
+        min: 0,
+        max: 150,
+        },
+
     email:{
-        type:"String",
+        type:String,
         required:true,
         trim:true,
         unique:true,
         lowercase:true
     },
     password:{
-        type:"String",
-        required:[true,"Password is Required"],
-        minlength:6
+         type: Number,
+        required: true,
+        min: 0,
+        max: 10,
     },
     role:{
-        type:"String",
+        type:String,
         enum:['user','admin'],
         default:'user'
     },
@@ -32,10 +42,9 @@ const userSchema = new mongoose.Schema({
         type:Date,
         default:Date.now
     }
-})   
+},{strict:'throw'})   
 
 const User = mongoose.model('User',userSchema);
 
-// User.name = "User";
 
 module.exports = User;

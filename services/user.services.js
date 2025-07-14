@@ -2,6 +2,7 @@
 const {UserRepository} = require('../repositories');
 const StatusCode = require('../utils/constants/statuscodes');
 const { ApiError, ValidationError } = require('../utils/error');
+const handleServiceError = require('../utils/error/handleServiceError');
 
 const userRepository = new UserRepository();
 
@@ -9,26 +10,13 @@ const createUser = async (data) => {
     try {
          const user = await userRepository.create(data);
          return user;
-    } catch (error) {
+         } catch (error) {
         // console.log("In Services :",JSON.stringify(error,null,2));
-         if(error.name === "ValidationError" )
-         {  
-            const explanation = Object.keys(error.errors).map((err)=>{
-                const error_name = error.errors[err].name;
-                const message= error.errors[err].message;
-               return {"error_type":error_name,message}
-            })
-            throw new ValidationError(explanation)
-        }
+        
+            const genError = handleServiceError(error);
 
-        else if( error.name === "TypeError")
-            throw new ApiError(error.messages,StatusCode.INTERNAL_SERVER_ERROR)
-           
-         else if(error.code === 11000)
-            throw new ApiError("User Already Exists",StatusCode.CONFLICT)
-         
-         
-          throw new ApiError("Cannot Create new User Obejct",StatusCode.INTERNAL_SERVER_ERROR);
+         if (genError === null) throw new ApiError("Cannot Create new User Obejct",StatusCode.INTERNAL_SERVER_ERROR);
+         return;
     }
 }
 
@@ -37,6 +25,7 @@ const getAllUsers = async () => {
         const allUsers = await userRepository.getAll();
         return allUsers;
     } catch (error) {
+        // console.log("In Services :",JSON.stringify(error,null,2));
         throw new ApiError("Error fetching all Users ",StatusCode.INTERNAL_SERVER_ERROR)
     }
 }
@@ -47,9 +36,15 @@ const getUser = async (id) => {
         return user;
     }
     catch(error){
-         if (error instanceof ApiError){
-             throw error;
+         console.log("In Services :",JSON.stringify(error,null,2));
+
+         if(error instanceof ApiError){
+            throw new ApiError("User Not Found",StatusCode.NOT_FOUND)
          }
+         
+          const genError = handleServiceError(error);
+
+        if (genError === null) 
         throw new ApiError("Error fetching User ",StatusCode.INTERNAL_SERVER_ERROR)
     }
 }
@@ -59,15 +54,20 @@ const updateUser = async (id, data) => {
     const user = await userRepository.update(id, data);
     return user;
   } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
+   console.log("In Services :",JSON.stringify(error,null,2));
 
-    if (error.name === "CastError") {
-      throw new ApiError("User ID is not valid (type mismatch)", StatusCode.BAD_REQUEST);
-    }
+    if (error instanceof ApiError){
 
-    throw new ApiError("Error updating user", StatusCode.INTERNAL_SERVER_ERROR);
+             if(error.statusCode === StatusCode.NOT_FOUND){
+              throw new ApiError("User Not Found",StatusCode.NOT_FOUND)
+             }
+
+              throw new ApiError("Failed to update user",StatusCode.INTERNAL_SERVER_ERROR) 
+    }
+         const genError = handleServiceError(error);
+
+         if (genError === null) 
+          throw new ApiError("Error updating user", StatusCode.INTERNAL_SERVER_ERROR);
   }
 };
 
@@ -77,13 +77,12 @@ const deleteUser = async(id)=>{
         return response;
     }catch(error){
         if (error instanceof ApiError) {
-           throw error;
+           throw new ApiError("User Id not exist",StatusCode.NOT_FOUND);
         }
 
-    if (error.name === "CastError") {
-      throw new ApiError("User ID is not valid (type mismatch)", StatusCode.BAD_REQUEST);
-    }
-     
+     const genError = handleServiceError(error);
+
+     if (genError === null) 
      throw new ApiError("Error updating user",StatusCode.INTERNAL_SERVER_ERROR)
 
     }

@@ -1,3 +1,5 @@
 const user = require('./user.services');
 
-module.exports = {user};
+module.exports = {
+    user,
+};
