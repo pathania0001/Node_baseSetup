@@ -11,7 +11,7 @@ const createUser = async (data) => {
          const user = await userRepository.create(data);
          return user;
          } catch (error) {
-        // console.log("In Services :",JSON.stringify(error,null,2));
+         console.log("In Services :",JSON.stringify(error,null,2));
         
             const genError = handleServiceError(error);
 

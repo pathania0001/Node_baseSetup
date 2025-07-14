@@ -1,6 +1,5 @@
 const Service = require("../services");
-const { ValidationError } = require("../utils/error");
-const {SuccessResponse, ErrorResponse} = require('../utils/comman');
+const {SuccessResponse} = require('../utils/comman');
 const StatusCode = require("../utils/constants/statuscodes");
 const addUser = async(req,res) => {
     const {name,age,email,password,role} = req.body;

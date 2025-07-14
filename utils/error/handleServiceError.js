@@ -14,9 +14,11 @@ const handleServiceError = (error) => {
     else if( error.name === "TypeError")
               throw new ApiError(error.messages,StatusCode.BAD_REQUEST)
              
-     else if(error.code === 11000)
-              throw new ApiError("User Already Exists",StatusCode.CONFLICT)
-           
+    else if (error.code === 11000) {
+    const duplicateField = Object.keys(error.keyPattern)[0];
+    throw new ApiError(`Duplicate value for unique field: ${duplicateField}`,StatusCode.CONFLICT);
+}
+
 
    else if (error.name === "CastError") {
     throw new ApiError(`Invalid key or value in data passed : ${error.path}`, StatusCode.BAD_REQUEST);
